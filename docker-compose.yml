@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: laravel-app
+        ports:
+            - "8000:9000"  # Пробрасываем порт 9000 контейнера на 8000 хоста для PHP
+        volumes:
+            - .:/var/www
+        networks:
+            - app-network
+
+    db:
+        image: mysql:5.7
+        container_name: mysql-db
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpassword
+            MYSQL_DATABASE: laravel
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - app-network
+
+    nginx:
+        image: nginx:latest
+        container_name: nginx-server
+        ports:
+            - "80:80"  # Пробрасываем порт 80 для Nginx
+        volumes:
+            - .:/var/www
+            - ./nginx.conf:/etc/nginx/nginx.conf
+        networks:
+            - app-network
+        depends_on:
+            - app  # Указываем, что Nginx зависит от контейнера с Laravel
+
+volumes:
+    db_data:
+
+networks:
+    app-network:
+        driver: bridge
